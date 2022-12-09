@@ -17,8 +17,8 @@ typedef std::vector<uint32_t> RRset;
 /// A set of reverse reachable sets
 typedef std::vector<RRset> RRsets;
 bool optflag;
-enum ProbDist {WEIGHTS, UNIFORM, WC, SKEWED, PROB_DIST_ERROR};
-enum FuncType {FORMAT, IM, FUNC_ERROR};
+enum ProbDist { WEIGHTS, UNIFORM, WC, SKEWED, PROB_DIST_ERROR };
+enum FuncType { FORMAT, IM, FUNC_ERROR };
 
 /// Node element with id and a property value
 typedef struct NodeElement

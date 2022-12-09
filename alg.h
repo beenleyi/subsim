@@ -29,7 +29,7 @@ private:
     /// Maximum coverage by lazy updating.
     double MaxCoverVanilla(const int targetSize);
     double MaxCoverOutDegPrority(const int targetSize);
-    double MaxCoverIMSentinel(std::vector<uint32_t> &seedSet, const int targetSize);
+    double MaxCoverIMSentinel(std::vector<uint32_t>& seedSet, const int targetSize);
     double MaxCoverSentinelSet(const int targetSize, const int totalTargetSize);
 
     /// Maximum coverage by maintaining the top-k marginal coverage.
@@ -39,15 +39,15 @@ private:
 
 
 public:
-    Alg(const Graph& graph, TResult& tRes) : _hyperGraph(graph), _hyperGraphVldt(graph), _res(tRes)
+    Alg(const Graph& graph, TResult& tRes): _hyperGraph(graph), _hyperGraphVldt(graph), _res(tRes)
     {
         _numV = _hyperGraph.get_nodes();
         _numE = _hyperGraph.get_edges();
         _vecOutDegree = std::vector<uint32_t>(_numV);
 
-        for (auto &nbrs : graph)
+        for (auto& nbrs : graph)
         {
-            for (auto &node : nbrs)
+            for (auto& node : nbrs)
             {
                 _vecOutDegree[node.first]++;
             }
@@ -76,8 +76,9 @@ public:
     double estimateRRSize();
 
     double subsimOnly(const int targetSize, const double epsilon, const double delta);
+    double rrsetOnly(const int rrsetNum);
     double subsimWithTrunc(const int targetSize, const double epsilon, const double delta);
-    double IncreaseR2(std::unordered_set<uint32_t> &connSet, double a, double upperOPT, double targetAppr);
+    double IncreaseR2(std::unordered_set<uint32_t>& connSet, double a, double upperOPT, double targetAppr);
 
     double FindFixSub(const int targetSize, const int totalTargetSize, const double epsilon, const double delta);
     double FindRemSet(const int targetSize, const double epsilon, const double targeEpsilon, const double delta);

@@ -1,11 +1,9 @@
 #pragma once
-
 #ifdef _WIN32
 #include <windows.h>
 #else
 #include <sys/stat.h>
 #endif
-
 class IoController
 {
 public:
@@ -16,6 +14,31 @@ public:
 #else
         mkdir(outFolder, 0733); // can be used on non-Windows
 #endif
+    }
+
+    static std::string build_distStr(ProbDist dist, std::string skewType = "err")
+    {
+        std::string distStr;
+
+        if (dist == WEIGHTS)
+        {
+            distStr = "weights";
+        }
+        else if (dist == WC)
+        {
+            distStr = "wc";
+        }
+        else if (dist == UNIFORM)
+        {
+            distStr = "uniform";
+        }
+        else if (dist == SKEWED && skewType == "weibull")
+        {
+            distStr = "weibull";
+        }
+        else if (dist == SKEWED && skewType == "exp") distStr = "exp";
+        else distStr = "unknown";
+        return distStr;
     }
 
     /// Save a serialized file
@@ -91,7 +114,7 @@ public:
     static void SaveGraphProbDist(const std::string graphName, int dist)
     {
         std::ofstream outFile(graphName + ".probdist");
-        outFile<< dist;
+        outFile << dist;
     }
 
 
@@ -115,12 +138,12 @@ public:
 
     /// Get out-file name
     static std::string BuildOutFileName(const std::string graphName, const std::string algName, const int seedsize,
-                                        const std::string probDist, const float probEdge)
+        const std::string probDist, const float probEdge)
     {
         if (probDist == "uniform")
         {
             return graphName + "_" + algName + "_k" + std::to_string(seedsize) + "_" + probDist + "_" + std::
-                   to_string(probEdge);
+                to_string(probEdge);
         }
 
         return graphName + "_" + algName + "_k" + std::to_string(seedsize) + "_" + probDist;
@@ -173,6 +196,22 @@ public:
         }
 
         outFile.close();
+    }
+    static void writeRRsetResult(const std::string filename, ProbDist probDist, const float sum, const float prob, const std::string skewType, double time, std::string path, bool vinalla, int rrsetNum) {
+        std::string name = buildGraphName(filename, probDist, sum, prob, skewType);
+        if (vinalla) name += "_vanilla";
+        std::stringstream outputfile;
+        outputfile << name << "_" << rrsetNum;
+        std::ofstream output(path + "/" + outputfile.str());
+        output << time << std::endl;
+    }
+
+    static std::string buildGraphName(const std::string filename, ProbDist probDist, const float sum, const float prob, const std::string skewType) {
+        std::stringstream graphname;
+        graphname << filename << "_" << IoController::build_distStr(probDist, skewType);
+        if (probDist == UNIFORM) graphname << "_" << prob;
+        else if (probDist == WC) graphname << "_" << sum;
+        return graphname.str();
     }
 };
 

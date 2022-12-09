@@ -205,13 +205,13 @@ double Alg::MaxCoverOutDegPrority(const int targetSize)
         sort(vecPair.begin(), vecPair.end());
         std::vector<uint32_t> newVecNode;
 
-        for (auto &nodePair : vecPair)
+        for (auto& nodePair : vecPair)
         {
             newVecNode.push_back(nodePair.second);
         }
 
         degMap.push_back(newVecNode);
-        auto &vecNode = degMap[deg];
+        auto& vecNode = degMap[deg];
 
         for (auto idx = vecNode.size(); idx--;)
         {
@@ -323,7 +323,7 @@ double Alg::MaxCoverOutDegPrority(const int targetSize)
 }
 
 // max cover used in the IM-sentinel Phase
-double Alg::MaxCoverIMSentinel(std::vector<uint32_t> &seedSet, const int targetSize)
+double Alg::MaxCoverIMSentinel(std::vector<uint32_t>& seedSet, const int targetSize)
 {
     // seedSet: the sentinel set obtained in the Sentinel Set Selection Phase
     std::unordered_set<uint32_t> subSeedSet(seedSet.begin(), seedSet.end());
@@ -404,13 +404,13 @@ double Alg::MaxCoverIMSentinel(std::vector<uint32_t> &seedSet, const int targetS
         sort(vecPair.begin(), vecPair.end());
         std::vector<uint32_t> newVecNode;
 
-        for (auto &nodePair : vecPair)
+        for (auto& nodePair : vecPair)
         {
             newVecNode.push_back(nodePair.second);
         }
 
         degMap.push_back(newVecNode);
-        auto &vecNode = degMap[deg];
+        auto& vecNode = degMap[deg];
 
         for (auto idx = vecNode.size(); idx--;)
         {
@@ -581,13 +581,13 @@ double Alg::MaxCoverSentinelSet(const int targetSize, const int totalTargetSize)
         sort(vecPair.begin(), vecPair.end());
         std::vector<uint32_t> newVecNode;
 
-        for (auto &nodePair : vecPair)
+        for (auto& nodePair : vecPair)
         {
             newVecNode.push_back(nodePair.second);
         }
 
         degMap.push_back(newVecNode);
-        auto &vecNode = degMap[deg];
+        auto& vecNode = degMap[deg];
 
         for (auto idx = vecNode.size(); idx--;)
         {
@@ -731,7 +731,7 @@ afterGreedy:
 
     for (int i = 0; i < seedSetSize; i++)
     {
-        auto &node = degMap[0][i];
+        auto& node = degMap[0][i];
         vecHeap.push_back(std::make_pair(_vecOutDegree[node], node));
     }
 
@@ -756,7 +756,7 @@ afterGreedy:
     std::sort_heap(vecHeap.begin(), vecHeap.end(), GreaterPair);
     std::unordered_set<uint32_t> seedHashSet(_vecSeed.begin(), _vecSeed.end());
 
-    for (auto &node : vecHeap)
+    for (auto& node : vecHeap)
     {
         if (_vecSeed.size() >= targetSize)
         {
@@ -894,7 +894,7 @@ double Alg::MaxCoverTopK(const int targetSize)
     _boundLast *= 1.0 * _numV / _numRRsets;
     const auto finalInf = 1.0 * sumInf * _numV / _numRRsets;
     std::cout << "  >>>[greedy-topk] influence: " << finalInf << ", min-bound: " << _boundMin <<
-              ", last-bound: " << _boundLast << '\n';
+        ", last-bound: " << _boundLast << '\n';
     return finalInf;
 }
 
@@ -942,9 +942,18 @@ double Alg::estimateRRSize()
 {
     const int sampleNum = 100;
     _hyperGraph.BuildRRsets(sampleNum);
-    double avg= _hyperGraph.HyperedgeAvg();
+    double avg = _hyperGraph.HyperedgeAvg();
     _hyperGraph.RefreshHypergraph();
     return avg;
+}
+
+double Alg::rrsetOnly(const int rrsetNum) {
+    Timer timerrrset("rrset");
+    double time = 0.0;
+    timerrrset.get_operation_time();
+    _hyperGraph.BuildRRsets(rrsetNum);
+    time += timerrrset.get_operation_time();
+    return time;
 }
 
 double Alg::subsimOnly(const int targetSize, const double epsilon, const double delta)
@@ -964,7 +973,7 @@ double Alg::subsimOnly(const int targetSize, const double epsilon, const double 
     std::cout << std::endl;
     for (auto idx = 1; idx <= numIter; idx++)
     {
-        const auto numR = numRbase << (idx-1);
+        const auto numR = numRbase << (idx - 1);
         std::cout << "Iteration: " << idx << " RR set: " << numR << std::endl;
         timerSubsim.get_operation_time();
         _hyperGraph.BuildRRsets(numR); // R1
@@ -984,7 +993,7 @@ double Alg::subsimOnly(const int targetSize, const double epsilon, const double 
         const auto currApprox = lowerSelect / upperOPT;
         std::cout << "lower bound: " << (lowerSelect * _numV / _numRRsets) << ", upperBound: " << (upperOPT * _numV / _numRRsets) << std::endl;
         std::cout << "-->SUBSIM (" << idx << "/" << numIter << ") approx. (max-cover): " << currApprox <<
-                  " (" << infSelf / upperBound << "), #RR sets: " << _numRRsets << '\n';
+            " (" << infSelf / upperBound << "), #RR sets: " << _numRRsets << '\n';
         double avgSize = _hyperGraph.HyperedgeAvg();
 
         if (currApprox >= approx - epsilon)
@@ -1053,7 +1062,7 @@ double Alg::subsimWithTrunc(const int targetSize, const double epsilon, const do
     std::cout << std::endl;
     for (auto idx = 1; idx <= numIter; idx++)
     {
-        const auto numR = numRbase << (idx-1);
+        const auto numR = numRbase << (idx - 1);
         std::cout << "Iteration: " << idx << " RR set: " << numR << std::endl;
         timerSubsim.get_operation_time();
         _hyperGraph.BuildRRsets(numR); // R1
@@ -1074,7 +1083,7 @@ double Alg::subsimWithTrunc(const int targetSize, const double epsilon, const do
 
         std::cout << "lower bound: " << (lowerSelect * _numV / _numRRsets) << ", upperBound: " << (upperOPT * _numV / _numRRsets) << std::endl;
         std::cout << "-->SUBSIM (" << idx << "/" << numIter << ") approx. (max-cover): " << currApprox <<
-                  " (" << infSelf / upperBound << "), #RR sets: " << _numRRsets << '\n';
+            " (" << infSelf / upperBound << "), #RR sets: " << _numRRsets << '\n';
         double fullRRSize = _hyperGraph.HyperedgeAvg();
         double truncRRSize = _hyperGraphVldt.EvalHyperedgeAvg();
         // if truncRRset is more efficient, increase the size of R2 in next iteration
@@ -1089,7 +1098,7 @@ double Alg::subsimWithTrunc(const int targetSize, const double epsilon, const do
             _res.set_influence_original(infSelf);
             _res.set_seed_vec(_vecSeed);
             _res.set_RR_sets_size(_numRRsets * 2);
-            std::cout << "==>Time for full RR sets: " << time1  << std::endl;
+            std::cout << "==>Time for full RR sets: " << time1 << std::endl;
             std::cout << "==>Time for truncated RR set: " << time4 << std::endl;
             std::cout << "==>Time for greedy: " << time2 << std::endl;
             return 0;
@@ -1099,7 +1108,7 @@ double Alg::subsimWithTrunc(const int targetSize, const double epsilon, const do
     return 0.0;
 }
 
-double Alg::IncreaseR2(std::unordered_set<uint32_t> &connSet, double a, double upperOPT, double targetAppr)
+double Alg::IncreaseR2(std::unordered_set<uint32_t>& connSet, double a, double upperOPT, double targetAppr)
 {
     size_t vldtRRsets = _hyperGraphVldt.get_RR_sets_size();
     size_t R1RRsets = _hyperGraph.get_RR_sets_size();
@@ -1109,7 +1118,7 @@ double Alg::IncreaseR2(std::unordered_set<uint32_t> &connSet, double a, double u
     int maxMultiple = 3;
     double infVldt = _hyperGraphVldt.CalculateInfEarlyStop();
     double degVldt = infVldt * vldtRRsets / _numV;
-    lowerSelect = (pow2(sqrt(degVldt * multiple + a * 2.0 / 9.0) - sqrt(a / 2.0)) - a / 18.0) ;
+    lowerSelect = (pow2(sqrt(degVldt * multiple + a * 2.0 / 9.0) - sqrt(a / 2.0)) - a / 18.0);
     estimateAppr = (lowerSelect / (multiple * vldtRRsets)) / (upperOPT / R1RRsets);
 
     if (estimateAppr < targetAppr)
@@ -1120,7 +1129,7 @@ double Alg::IncreaseR2(std::unordered_set<uint32_t> &connSet, double a, double u
     _hyperGraphVldt.BuildRRsetsEarlyStop(connSet, vldtRRsets * multiple);
     infVldt = _hyperGraphVldt.CalculateInfEarlyStop();
     vldtRRsets = _hyperGraphVldt.get_RR_sets_size();
-    degVldt = infVldt *  vldtRRsets / _numV;
+    degVldt = infVldt * vldtRRsets / _numV;
     lowerSelect = (pow2(sqrt(degVldt + a * 2.0 / 9.0) - sqrt(a / 2.0)) - a / 18.0);
     double newAppr = (lowerSelect / vldtRRsets) / (upperOPT / R1RRsets);
     return (newAppr > targetAppr) ? newAppr : 0.0;
@@ -1153,7 +1162,7 @@ double Alg::FindRemSet(const int targetSize, const double epsilon, const double 
 
     for (auto idx = 1; idx <= numIter; idx++)
     {
-        const auto numR = numRbase << (idx-1);
+        const auto numR = numRbase << (idx - 1);
         std::cout << "Iteration: " << idx << " RR set: " << numR << std::endl;
         timerSubsim.get_operation_time();
         _hyperGraph.BuildRRsetsEarlyStop(subSeedSet, numR); // R1
@@ -1174,7 +1183,7 @@ double Alg::FindRemSet(const int targetSize, const double epsilon, const double 
 
         std::cout << "lower bound: " << (lowerSelect * _numV / _numRRsets) << ", upperBound: " << (upperOPT * _numV / _numRRsets) << std::endl;
         std::cout << "-->SUBSIM (" << idx << "/" << numIter << ") approx. (max-cover): " << currApprox <<
-                  " (" << infSelf / upperBound << "), #RR sets: " << _numRRsets << '\n';
+            " (" << infSelf / upperBound << "), #RR sets: " << _numRRsets << '\n';
         double fullRRSize = _hyperGraph.HyperedgeAvg();
         double truncRRSize = _hyperGraphVldt.EvalHyperedgeAvg();
 
@@ -1190,7 +1199,7 @@ double Alg::FindRemSet(const int targetSize, const double epsilon, const double 
             _res.set_influence_original(infSelf);
             _res.set_seed_vec(_vecSeed);
             _res.set_RR_sets_size(_numRRsets * 2);
-            std::cout << "==>Time for full RR in IM-Sentinel phase: " << time1  << std::endl;
+            std::cout << "==>Time for full RR in IM-Sentinel phase: " << time1 << std::endl;
             std::cout << "==>Time for truncated RR in IM-Sentinel phase: " << time4 << std::endl;
             std::cout << "==>Time for greedy in IM-Sentinel phase: " << time2 << std::endl;
             std::cout << "==>Influence via R2 in IM-Sentinel phase: " << infVldt << ", time: " << _res.get_running_time() << '\n';
@@ -1211,7 +1220,7 @@ double Alg::FindDynamSub(const int totalTargetSize, const double epsilon, const 
     const double beta = sqrt((1 - 1 / e) * (logcnk(_numV, totalTargetSize) + log(6.0 / delta)));
     const auto numRbasePrevious = size_t(2.0 * pow2((1 - 1 / e) * alpha + beta) / totalTargetSize);
     const auto numRbase = size_t(_baseNumRRsets);
-    
+
     // the successful probability of at least 1-delta/3
     const auto maxNumR = size_t(2.0 * _numV * pow2((1 - 1 / e) * alpha + beta) / totalTargetSize / pow2(epsilon)) + 1;
     const auto numIter = (size_t)log2(maxNumR / numRbase) + 1;
@@ -1226,7 +1235,7 @@ double Alg::FindDynamSub(const int totalTargetSize, const double epsilon, const 
 
     for (auto idx = 1; idx <= numIter; idx++)
     {
-        const auto numR = numRbase << (idx-1);
+        const auto numR = numRbase << (idx - 1);
         std::cout << "Iteration: " << idx << " RR set: " << numR << std::endl;
         timerSubsim.get_operation_time();
         //build R1
@@ -1255,7 +1264,7 @@ double Alg::FindDynamSub(const int totalTargetSize, const double epsilon, const 
             infVldt = _vecVldtInf[i];
             double lowerDeg = infVldt;
             double upperDeg = _boundMin;
-            double a = log(numIter * 6.0  / delta);
+            double a = log(numIter * 6.0 / delta);
             double lower = pow2(sqrt(lowerDeg + a * 2.0 / 9.0) - sqrt(a / 2.0)) - a / 18.0;
             double upper = pow2(sqrt(upperDeg + a1 / 2.0) + sqrt(a1 / 2.0));
             upper = (upper > numR) ? numR : upper;
@@ -1304,7 +1313,7 @@ double Alg::FindDynamSub(const int totalTargetSize, const double epsilon, const 
         const auto currApprox = lowerSelect / upperOPT;
         std::cout << "lower bound: " << (lowerSelect * _numV / (_numRRsets)) << ", upperBound: " << (upperOPT * _numV / _numRRsets) << std::endl;
         std::cout << "-->SUBSIM (" << idx + 1 << "/" << numIter << ") approx. (max-cover): " << currApprox <<
-                  " (" << infSelf / upperBound << "), #RR sets: " << _numRRsets << '\n';
+            " (" << infSelf / upperBound << "), #RR sets: " << _numRRsets << '\n';
         const double approx = 1 - pow(x, _vecSeed.size());
         double targetAppr = approx - epsilon;
 
@@ -1343,7 +1352,7 @@ double Alg::FindDynamSub(const int totalTargetSize, const double epsilon, const 
     }
 
 succ:
-    std::cout << "==>Time for full RR in SentinelSet phase: " << time1  << std::endl;
+    std::cout << "==>Time for full RR in SentinelSet phase: " << time1 << std::endl;
     std::cout << "==>Time for truncated RR in SentinelSet phase: " << time4 << std::endl;
     std::cout << "==>Time for greedy in SentinelSet phase: " << time2 << std::endl;
     std::cout << "==>size of sentinel set: " << _vecSeed.size() << ", inf: " << infVldt << std::endl;
@@ -1355,7 +1364,7 @@ double Alg::subsimWithHIST(const int targetSize, const double epsilon, const dou
 {
     Timer timerSubsim("SUBSIM");
     _baseNumRRsets = 3 * log(1 / delta);
-    
+
     std::cout << std::endl;
     std::cout << "Sentinel Set Selection Phase" << std::endl;
     FindDynamSub(targetSize, epsilon / 2, delta / 2);

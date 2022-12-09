@@ -39,8 +39,9 @@ int main(int argc, char* argv[])
     Timer mainTimer("main");
     // Load the reverse graph
     Graph graph;
-    GraphBase::LoadGraph(graph, infilename);
-    int probDist = GraphBase::LoadGraphProbDist(infilename);
+    GraphBase::LoadGraph(graph, infilename, Arg._probDist, Arg._wcVar, Arg._probEdge, Arg._skewType);
+    // int probDist = GraphBase::LoadGraphProbDist(infilename);
+    int probDist = Arg._probDist;
 
     // Initialize a result object to record the results
     TResult tRes;
@@ -51,10 +52,19 @@ int main(int argc, char* argv[])
 
     if (delta < 0) delta = 1.0 / graph.size();
 
+    if (Arg._rrset)
+    {
+        double time = tAlg.rrsetOnly(Arg._rrsetNum);
+        TIO::writeRRsetResult(Arg._graphname, Arg._probDist, Arg._wcVar, Arg._probEdge, Arg._skewType, time, Arg._resultFolder, Arg._vanilla, Arg._rrsetNum);
+        LogInfo("Result written!!!");
+        return 0;
+    }
+
     int seedSize = Arg._seedsize;
     std::cout << "seedSize k=" << seedSize << std::endl;
     Arg.build_outfilename(seedSize, (ProbDist)probDist, graph);
     std::cout << "---The Begin of " << Arg._outFileName << "---\n";
+
 
     if (!Arg._hist)
     {
@@ -62,7 +72,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        std::cout <<"HIST is invoked." <<std::endl;
+        std::cout << "HIST is invoked." << std::endl;
         if (seedSize < 10)
         {
             tAlg.subsimWithTrunc(seedSize, Arg._eps, delta);

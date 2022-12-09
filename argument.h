@@ -1,6 +1,4 @@
 #pragma once
-
-
 class Argument
 {
 public:
@@ -52,6 +50,10 @@ public:
     // use hist algorithm
     bool _hist = false;
 
+    bool _rrset = false;
+
+    int _rrsetNum = 0;
+
     Argument(int argc, char* argv[])
     {
         std::string param, value;
@@ -77,6 +79,8 @@ public:
             else if (!param.compare("-skew")) _skewType = value;
             else if (!param.compare("-vanilla")) _vanilla = (value == "1");
             else if (!param.compare("-hist")) _hist = (value == "1");
+            else if (!param.compare("-rrset")) _rrset = (value == "1");
+            else if (!param.compare("-rrsetnum")) _rrsetNum = stoi(value);
         }
 
         if (_wcVar <= 0)
@@ -89,41 +93,9 @@ public:
         decode_prob_dist();
     }
 
-
-
-    void build_outfilename(int seedSize, ProbDist dist, Graph& graph)
-    {
-        std::string distStr; 
-
-        if (dist == WEIGHTS)
-        {
-            _probDistStr = "weights";
-        }
-        else if (dist == WC)
-        {
-            _probDistStr = "wc";
-        }
-        else if (dist == UNIFORM)
-        {
-            _probDistStr = "uniform";
-
-            for (int i = 0; i < graph.size(); i++)
-            {
-                if (graph[i].size() > 0 )
-                {
-                    _probEdge = graph[i][0].second;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            _probDistStr = "skewed";
-        }
-
-        _outFileName = TIO::BuildOutFileName(_graphname, "subsim", seedSize, _probDistStr, _probEdge);
-
-        return ;
+    void build_outfilename(int seedSize, ProbDist dist, Graph& graph) {
+        std::string distStr = TIO::build_distStr(dist);
+        _outFileName = TIO::BuildOutFileName(_graphname, "subsim", seedSize, distStr, _probEdge);
     }
 
     void decode_prob_dist()
@@ -144,7 +116,7 @@ public:
         {
             _probDist = WEIGHTS;
         }
-        else 
+        else
         {
             _probDist = PROB_DIST_ERROR;
         }

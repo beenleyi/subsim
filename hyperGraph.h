@@ -40,7 +40,7 @@ public:
 
     ProbDist _probDist = WEIGHTS;
 
-    explicit HyperGraph(const Graph& graph) : _graph(graph)
+    explicit HyperGraph(const Graph& graph): _graph(graph)
     {
         InitHypergraph();
     }
@@ -87,51 +87,51 @@ public:
 
         const auto prevSize = _numRRsets;
         _numRRsets = _numRRsets > numSamples ? _numRRsets : numSamples;
-
+        LogInfo("#RRset to sample", numSamples);
         if (_isVanilla)
         {
-            // std::cout << "Sample RR set by vanilla method" << std::endl;
+            std::cout << "Sample RR set by vanilla method" << std::endl;
 
             for (auto i = prevSize; i < numSamples; i++)
             {
                 BuildOneRRset(dsfmt_gv_genrand_uint32_range(_numV), i);
             }
 
-            return ;
+            return;
         }
 
         if (_probDist == WC)
         {
-            // std::cout << "Sample RR sets in WC model" << std::endl;
+            std::cout << "Sample RR sets in WC model" << std::endl;
 
             for (auto i = prevSize; i < numSamples; i++)
             {
                 BuildOneRRsetWeighted(dsfmt_gv_genrand_uint32_range(_numV), i);
             }
 
-            return ;
+            return;
         }
         else if (_probDist == UNIFORM)
         {
-            // std::cout << "Sample RR sets in uniform model" << std::endl;
+            std::cout << "Sample RR sets in uniform model" << std::endl;
 
             for (auto i = prevSize; i < numSamples; i++)
             {
                 BuildOneRRsetConstant(dsfmt_gv_genrand_uint32_range(_numV), i);
             }
 
-            return ;
+            return;
         }
         else if (_probDist == SKEWED || _probDist == WEIGHTS)
         {
-            // std::cout << "Sample RR sets in skewed or weights case" << std::endl;
+            std::cout << "Sample RR sets in skewed or weights case" << std::endl;
 
             for (auto i = prevSize; i < numSamples; i++)
             {
                 BuildOneRRsetSkewed(dsfmt_gv_genrand_uint32_range(_numV), i);
             }
 
-            return ;
+            return;
         }
         else
         {
@@ -141,7 +141,8 @@ public:
             }
         }
 
-        return ;
+        LogInfo("Sampling success!!!");
+        return;
     }
 
 
@@ -171,7 +172,7 @@ public:
 
         var = var / _numRRsets;
         std::cout << "final average RR set size: " << ave_hyperedge_size << ", final variance: " << var << std::endl;
-        return ;
+        return;
     }
 
     double HyperedgeAvg()
@@ -193,21 +194,21 @@ public:
         std::vector<int> RRsetSize(_numRRsets);
         for (size_t i = 0; i < _numRRsets; i++)
         {
-          RRsetSize[i]  = _RRsets[i].size();
-          std::cout << RRsetSize[i] << std::endl;
+            RRsetSize[i] = _RRsets[i].size();
+            std::cout << RRsetSize[i] << std::endl;
         }
 
         std::sort(RRsetSize.begin(), RRsetSize.end());
-        int index = _numRRsets/2;
-        if (_numRRsets%2 == 1)
+        int index = _numRRsets / 2;
+        if (_numRRsets % 2 == 1)
         {
             return RRsetSize[index];
         }
         else
         {
-            return (RRsetSize[index] + RRsetSize[index-1])/2.0;
+            return (RRsetSize[index] + RRsetSize[index - 1]) / 2.0;
         }
-    } 
+    }
 
     // Generate one RR set
     void BuildOneRRset(const uint32_t uStart, const size_t hyperIdx)
@@ -259,7 +260,7 @@ public:
             {
                 if (_graph[expand].size() == 0) continue;
 
-                double p =  _graph[expand][0].second;
+                double p = _graph[expand][0].second;
                 double log2Prob = Logarithm(1 - p);
 
                 if (p < 1)
@@ -315,7 +316,9 @@ public:
         _FRsets[uStart].push_back(hyperIdx);
         _vecVisitNode[numVisitNode++] = uStart;
         _vecVisitBool[uStart] = true;
-        const double p =  _graph[0][0].second;
+        while (_graph[currIdx].size() == 0) currIdx++;
+        const double p = _graph[currIdx][0].second;
+        currIdx = 0;
         const double const_prob = Logarithm(1 - p);
 
         if (p == 1)
@@ -399,7 +402,7 @@ public:
 
                 while (startMin < endMax)
                 {
-                    const auto &currentedge = _graph[expand][startMin];
+                    const auto& currentedge = _graph[expand][startMin];
                     const auto node_prob = currentedge.second;
                     const auto nbrId = currentedge.first;
 
@@ -415,8 +418,8 @@ public:
 
                     if (_vecVisitBool[nbrId]) continue;
 
-                    _vecVisitNode[numVisitNode++] =  nbrId;
-                    _vecVisitBool[nbrId]  = true;
+                    _vecVisitNode[numVisitNode++] = nbrId;
+                    _vecVisitBool[nbrId] = true;
                     _FRsets[nbrId].push_back(hyperIdx);
                 }
 
@@ -432,7 +435,7 @@ public:
                         break;
                     }
 
-                    const auto &currentedge = _graph[expand][startMin];
+                    const auto& currentedge = _graph[expand][startMin];
                     const auto nbrId = currentedge.first;
                     const auto accept_probability = currentedge.second;
                     double randDouble = dsfmt_gv_genrand_open_close();
@@ -530,7 +533,7 @@ public:
                 }
             }
 
-postProcess:
+        postProcess:
 
             for (auto i = 0; i < numVisitNode; i++)
                 _vecVisitBool[_vecVisitNode[i]] = false;
@@ -570,7 +573,7 @@ postProcess:
         FRsets().swap(_FRsets);
     }
 
-    void BuildOneRRsetEarlyStopByVanilla(std::unordered_set<uint32_t> &connSet, const uint32_t uStart, const size_t hyperIdx)
+    void BuildOneRRsetEarlyStopByVanilla(std::unordered_set<uint32_t>& connSet, const uint32_t uStart, const size_t hyperIdx)
     {
         size_t numVisitNode = 0, currIdx = 0;
         _FRsets[uStart].push_back(hyperIdx);
@@ -616,7 +619,7 @@ postProcess:
             }
         }
 
-finished:
+    finished:
 
         for (int i = 0; i < numVisitNode; i++) _vecVisitBool[_vecVisitNode[i]] = false;
 
@@ -624,7 +627,7 @@ finished:
     }
 
 
-    void BuildOneRRsetEarlyStopBySubsim(std::unordered_set<uint32_t> &connSet, const uint32_t uStart, const size_t hyperIdx)
+    void BuildOneRRsetEarlyStopBySubsim(std::unordered_set<uint32_t>& connSet, const uint32_t uStart, const size_t hyperIdx)
     {
         size_t numVisitNode = 0, currIdx = 0;
         _FRsets[uStart].push_back(hyperIdx);
@@ -640,7 +643,7 @@ finished:
         while (currIdx < numVisitNode)
         {
             const auto expand = _vecVisitNode[currIdx++];
-            const double p =  _graph[expand][0].second;
+            const double p = _graph[expand][0].second;
 
             if (0 == _graph[expand].size())
             {
@@ -690,14 +693,14 @@ finished:
             }
         }
 
-finished:
+    finished:
 
         for (int i = 0; i < numVisitNode; i++) _vecVisitBool[_vecVisitNode[i]] = false;
 
         _RRsets.push_back(RRset(_vecVisitNode.begin(), _vecVisitNode.begin() + numVisitNode));
     }
 
-    void BuildRRsetsEarlyStop(std::unordered_set<uint32_t> &connSet, const int numSamples)
+    void BuildRRsetsEarlyStop(std::unordered_set<uint32_t>& connSet, const int numSamples)
     {
         const auto prevSize = _numRRsets;
         _numRRsets = _numRRsets > numSamples ? _numRRsets : numSamples;
@@ -720,7 +723,7 @@ finished:
         }
     }
 
-    double EvalSeedSetInfByVanilla(std::unordered_set<uint32_t> &connSet, const int numSamples)
+    double EvalSeedSetInfByVanilla(std::unordered_set<uint32_t>& connSet, const int numSamples)
     {
         uint32_t numCovered = 0;
         int64_t totalHyperedgeSize = 0;
@@ -748,7 +751,7 @@ finished:
                     continue;
                 }
 
-                const double p =  _graph[expand][0].second;
+                const double p = _graph[expand][0].second;
 
                 for (auto& nbr : _graph[expand])
                 {
@@ -773,7 +776,7 @@ finished:
                 }
             }
 
-finished:
+        finished:
             totalHyperedgeSize += numVisitNode;
 
             for (int i = 0; i < numVisitNode; i++) _vecVisitBool[_vecVisitNode[i]] = false;
@@ -783,7 +786,7 @@ finished:
         return 1.0 * numCovered * _numV / numSamples;
     }
 
-    double EvalSeedSetInfBySubsim(std::unordered_set<uint32_t> &connSet, const int numSamples)
+    double EvalSeedSetInfBySubsim(std::unordered_set<uint32_t>& connSet, const int numSamples)
     {
         uint32_t numCovered = 0;
         int64_t totalHyperedgeSize = 0;
@@ -811,7 +814,7 @@ finished:
                     continue;
                 }
 
-                const double p =  _graph[expand][0].second;
+                const double p = _graph[expand][0].second;
 
                 if (p >= 1.0)
                 {
@@ -860,7 +863,7 @@ finished:
                 }
             }
 
-finished:
+        finished:
             totalHyperedgeSize += numVisitNode;
 
             for (int i = 0; i < numVisitNode; i++) _vecVisitBool[_vecVisitNode[i]] = false;
@@ -870,7 +873,7 @@ finished:
         return 1.0 * numCovered * _numV / numSamples;
     }
 
-    double EvalSeedSetInf(std::unordered_set<uint32_t> &connSet, const int numSamples)
+    double EvalSeedSetInf(std::unordered_set<uint32_t>& connSet, const int numSamples)
     {
         if (_isVanilla)
         {

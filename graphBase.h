@@ -1,5 +1,4 @@
 #pragma once
-
 bool greater_first(const std::pair<uint32_t, float> x, const std::pair<uint32_t, float> y)
 {
     if (x.second > y.second) return true;
@@ -27,7 +26,7 @@ public:
 
         infile >> numV >> numE;
         Graph vecGRev(numV);
-        std::vector<size_t> vecInDeg(numV);
+
 
         for (auto i = numE; i--;)
         {
@@ -39,12 +38,17 @@ public:
             {
                 infile >> srcId >> dstId;
             }
+            if (dstId > numV) {
+                vecGRev.resize(dstId + 1);
+                LogInfo("resize to ", dstId + 1);
+                numV = dstId + 1;
+            }
 
             vecGRev[dstId].push_back(Edge(srcId, weight));
         }
 
         infile.close();
-
+        std::vector<size_t> vecInDeg(numV);
         for (auto idx = 0; idx < numV; idx++)
         {
             vecInDeg[idx] = vecGRev[idx].size();
@@ -82,9 +86,9 @@ public:
             if (skewType == "weibull")
             {
                 std::default_random_engine generator(time(NULL));
-                double min_value = (1e-8 < 1.0/numV)? 1e-8: 1.0/numV;
+                double min_value = (1e-8 < 1.0 / numV) ? 1e-8 : 1.0 / numV;
 
-                for (size_t i = 0; i< vecGRev.size(); i++)
+                for (size_t i = 0; i < vecGRev.size(); i++)
                 {
 
                     if (vecGRev[i].size() == 0) continue;
@@ -94,8 +98,8 @@ public:
                         // random number from (0, 10)
                         double a = dsfmt_gv_genrand_open_open() * 10;
                         double b = dsfmt_gv_genrand_open_open() * 10;
-                        std::weibull_distribution<double> distribution(a,b);
-                        auto weight =  distribution(generator);
+                        std::weibull_distribution<double> distribution(a, b);
+                        auto weight = distribution(generator);
                         vecGRev[i][j].second = weight;
 
                         sum += weight;
@@ -103,31 +107,31 @@ public:
 
                     for (size_t j = 0; j < vecGRev[i].size(); j++)
                     {
-                        auto weight = vecGRev[i][j].second/sum;
-                        vecGRev[i][j].second = (weight > min_value)?weight:min_value; 
+                        auto weight = vecGRev[i][j].second / sum;
+                        vecGRev[i][j].second = (weight > min_value) ? weight : min_value;
                     }
                     sort(vecGRev[i].begin(), vecGRev[i].end(), greater_first);
                 }
             }
             else
             {
-                double min_value = (1e-8 < 1.0/numV)? 1e-8: 1.0/numV;
-                for (size_t i = 0; i<vecGRev.size(); i++)
+                double min_value = (1e-8 < 1.0 / numV) ? 1e-8 : 1.0 / numV;
+                for (size_t i = 0; i < vecGRev.size(); i++)
                 {
                     if (vecGRev[i].size() == 0) continue;
                     double sum = 0.0;
                     for (size_t j = 0; j < vecGRev[i].size(); j++)
                     {
                         // lambda = 1
-                        auto weight = -log ( 1.0 - dsfmt_gv_genrand_open_open());
+                        auto weight = -log(1.0 - dsfmt_gv_genrand_open_open());
                         vecGRev[i][j].second = weight;
                         sum += weight;
                     }
 
                     for (size_t j = 0; j < vecGRev[i].size(); j++)
                     {
-                        double weight = vecGRev[i][j].second/sum;
-                        vecGRev[i][j].second = (weight > min_value)?weight:min_value;
+                        double weight = vecGRev[i][j].second / sum;
+                        vecGRev[i][j].second = (weight > min_value) ? weight : min_value;
                     }
                     sort(vecGRev[i].begin(), vecGRev[i].end(), greater_first);
                 }
@@ -142,20 +146,28 @@ public:
         }
 
         std::cout << "probability distribution: " << probDist << std::endl;
-        TIO::SaveGraphStruct(filename, vecGRev, true);
-        TIO::SaveGraphProbDist(filename, (int)probDist);
+
+        TIO::SaveGraphStruct(TIO::buildGraphName(filename, probDist, sum, prob, skewType), vecGRev, true);
+        // TIO::SaveGraphProbDist(outgraphname.str(), (int)probDist);
         std::cout << "The graph is formatted!" << std::endl;
     }
 
     /// Load graph via vector deserialization.
-    static void LoadGraph(Graph &graph, const std::string graphName)
+    static void LoadGraph(Graph& graph, const std::string filename, ProbDist probDist, const float sum, const float prob, const std::string skewType)
     {
-        TIO::LoadGraphStruct(graphName, graph, true);
-        return ;
+        LogInfo("Graph", filename);
+        LogInfo("probDist", TIO::build_distStr(probDist));
+        LogInfo("wcPara", sum);
+        LogInfo("uniformPara", prob);
+        LogInfo("skewType", skewType);
+        TIO::LoadGraphStruct(TIO::buildGraphName(filename, probDist, sum, prob, skewType), graph, true);
+        LogInfo("Load success!!!");
+        return;
     }
 
     static int LoadGraphProbDist(const std::string graphName)
     {
         return TIO::LoadGraphProbDist(graphName);
     }
+
 };
