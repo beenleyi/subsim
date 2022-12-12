@@ -1,173 +1,116 @@
 #pragma once
-bool greater_first(const std::pair<uint32_t, float> x, const std::pair<uint32_t, float> y)
+
+bool greater_first(const std::pair<uint32_t, double> x, const std::pair<uint32_t, double> y)
 {
-    if (x.second > y.second) return true;
-    else if (x.second < y.second) return false;
-    else if (x.first < y.first) return true;
-    else return false;
+  if (x.second > y.second) return true;
+  else if (x.second < y.second) return false;
+  else if (x.first < y.first) return true;
+  else return false;
 }
 
 class GraphBase
 {
 public:
-    /// Format the input for future computing, which is much faster for loading. Vector serialization is used.
-    static void FormatGraph(const std::string filename, ProbDist probDist, const float sum, const float prob, const std::string skewType)
+  CountType numV, numE;
+  NeighborList nodeList;
+  NeighborWeightList weightList;
+  CountType* neighborNumList;
+  std::string filename;
+  ProbDist probDist;
+  double sum;
+  double prob;
+  std::string skewType;
+  std::string buildGraphName() {
+    std::stringstream graphname;
+    graphname << filename << "_" << build_distStr();
+    if (probDist == UNIFORM) graphname << "_" << prob;
+    else if (probDist == WC) graphname << "_" << sum;
+    return graphname.str();
+  }
+
+  std::string build_distStr()
+  {
+    std::string distStr;
+
+    if (probDist == WEIGHTS)
     {
-        size_t numV, numE;
-        uint32_t srcId, dstId;
-        float weight = 0.0;
-        std::ifstream infile(filename);
+      distStr = "weights";
+    }
+    else if (probDist == WC)
+    {
+      distStr = "wc";
+    }
+    else if (probDist == UNIFORM)
+    {
+      distStr = "uniform";
+    }
+    else if (probDist == SKEWED && skewType == "weibull")
+    {
+      distStr = "weibull";
+    }
+    else if (probDist == SKEWED && skewType == "exp") distStr = "exp";
+    else distStr = "unknown";
+    return distStr;
+  }
 
-        if (!infile.is_open())
-        {
-            std::cout << "The file \"" + filename + "\" can NOT be opened\n";
-            return;
-        }
+  /// Format the input for future computing, which is much faster for loading. Vector serialization is used.
+  void FormatGraph(const std::string _filename, ProbDist _probDist, const double _sum, const double _prob, const std::string _skewType)
+  {
+    Logger::LogInfo("Cannot format.");
+  }
 
-        infile >> numV >> numE;
-        Graph vecGRev(numV);
-
-
-        for (auto i = numE; i--;)
-        {
-            if (probDist == WEIGHTS)
-            {
-                infile >> srcId >> dstId >> weight;
-            }
-            else
-            {
-                infile >> srcId >> dstId;
-            }
-            if (dstId > numV) {
-                vecGRev.resize(dstId + 1);
-                LogInfo("resize to ", dstId + 1);
-                numV = dstId + 1;
-            }
-
-            vecGRev[dstId].push_back(Edge(srcId, weight));
-        }
-
-        infile.close();
-        std::vector<size_t> vecInDeg(numV);
-        for (auto idx = 0; idx < numV; idx++)
-        {
-            vecInDeg[idx] = vecGRev[idx].size();
-        }
-
-        if (probDist == WC)
-        {
-            for (size_t i = 0; i < vecGRev.size(); i++)
-            {
-                if (vecGRev[i].size() == 0) continue;
-
-                weight = sum / vecInDeg[i];
-
-                for (size_t j = 0; j < vecGRev[i].size(); j++)
-                {
-                    vecGRev[i][j].second = weight;
-                }
-            }
-        }
+  /// Load graph via vector deserialization.
+  void LoadGraph(Graph& graph, const std::string _filename, ProbDist _probDist, const double _sum, const double _prob, const std::string _skewType)
+  {
+    filename = _filename;
+    probDist = _probDist;
+    sum = _sum;
+    prob = _prob;
+    skewType = _skewType;
+    Logger::LogInfo("Graph", filename);
+    Logger::LogInfo("probDist", build_distStr());
+    Logger::LogInfo("wcPara", sum);
+    Logger::LogInfo("uniformPara", prob);
+    Logger::LogInfo("skewType", skewType);
+    std::string graphName = buildGraphName();
+    std::ifstream graphAttrIn(filename + ".attribute");
+    CountType numV, numE;
+    graphAttrIn >> numV >> numE;
+    Logger::LogInfo("numV", numV);
+    Logger::LogInfo("numE", numE);
+    graphAttrIn.close();
+    nodeList = new NodeType[numE];
+    neighborNumList = new CountType[numV + 1];
+    std::ifstream foutEL(filename + ".outEdges", std::ios::in | std::ios::binary);
+    std::ifstream foutPL(filename + ".outPtr", std::ios::in | std::ios::binary);
+    if (probDist == SKEWED) {
+      weightList = new WeightType[numE];
+      std::ifstream foutWEL(graphName + ".outWEdges", std::ios::in | std::ios::binary);
+      foutWEL.read((char*)&weightList[0], sizeof(weightList[0]) * numE);
+      foutWEL.close();
+    }
+    foutEL.read((char*)&nodeList[0], sizeof(nodeList[0]) * numE);
+    foutPL.read((char*)&neighborNumList[0], sizeof(neighborNumList[0]) * (numV + 1));
+    foutEL.close();
+    foutPL.close();
+    Logger::LogInfo("Load success!!!");
+    graph.resize(numV);
+    for (CountType i = 0; i < numV; i++)
+    {
+      for (CountType j = neighborNumList[i];j < neighborNumList[i + 1];j++) {
+        if (probDist == SKEWED)
+          graph[i].push_back(Edge(nodeList[j], weightList[j]));
         else if (probDist == UNIFORM)
-        {
-            // Uniform probability
-            for (auto& nbrs : vecGRev)
-            {
-                for (auto& nbr : nbrs)
-                {
-                    nbr.second = prob;
-                }
-            }
-        }
-        // exponential distribution with lambada equal to its in-degree
-        else if (probDist == SKEWED)
-        {
-
-            if (skewType == "weibull")
-            {
-                std::default_random_engine generator(time(NULL));
-                double min_value = (1e-8 < 1.0 / numV) ? 1e-8 : 1.0 / numV;
-
-                for (size_t i = 0; i < vecGRev.size(); i++)
-                {
-
-                    if (vecGRev[i].size() == 0) continue;
-                    double sum = 0.0;
-                    for (size_t j = 0; j < vecGRev[i].size(); j++)
-                    {
-                        // random number from (0, 10)
-                        double a = dsfmt_gv_genrand_open_open() * 10;
-                        double b = dsfmt_gv_genrand_open_open() * 10;
-                        std::weibull_distribution<double> distribution(a, b);
-                        auto weight = distribution(generator);
-                        vecGRev[i][j].second = weight;
-
-                        sum += weight;
-                    }
-
-                    for (size_t j = 0; j < vecGRev[i].size(); j++)
-                    {
-                        auto weight = vecGRev[i][j].second / sum;
-                        vecGRev[i][j].second = (weight > min_value) ? weight : min_value;
-                    }
-                    sort(vecGRev[i].begin(), vecGRev[i].end(), greater_first);
-                }
-            }
-            else
-            {
-                double min_value = (1e-8 < 1.0 / numV) ? 1e-8 : 1.0 / numV;
-                for (size_t i = 0; i < vecGRev.size(); i++)
-                {
-                    if (vecGRev[i].size() == 0) continue;
-                    double sum = 0.0;
-                    for (size_t j = 0; j < vecGRev[i].size(); j++)
-                    {
-                        // lambda = 1
-                        auto weight = -log(1.0 - dsfmt_gv_genrand_open_open());
-                        vecGRev[i][j].second = weight;
-                        sum += weight;
-                    }
-
-                    for (size_t j = 0; j < vecGRev[i].size(); j++)
-                    {
-                        double weight = vecGRev[i][j].second / sum;
-                        vecGRev[i][j].second = (weight > min_value) ? weight : min_value;
-                    }
-                    sort(vecGRev[i].begin(), vecGRev[i].end(), greater_first);
-                }
-            }
-        }
-        else if (probDist == WEIGHTS)
-        {
-            for (size_t i = 0; i < vecGRev.size(); i++)
-            {
-                sort(vecGRev[i].begin(), vecGRev[i].end(), greater_first);
-            }
-        }
-
-        std::cout << "probability distribution: " << probDist << std::endl;
-
-        TIO::SaveGraphStruct(TIO::buildGraphName(filename, probDist, sum, prob, skewType), vecGRev, true);
-        // TIO::SaveGraphProbDist(outgraphname.str(), (int)probDist);
-        std::cout << "The graph is formatted!" << std::endl;
+          graph[i].push_back(Edge(nodeList[j], _prob));
+        else if (probDist == WC)
+          graph[i].push_back(Edge(nodeList[j], _sum / (neighborNumList[i + 1] - neighborNumList[i])));
+      }
     }
-
-    /// Load graph via vector deserialization.
-    static void LoadGraph(Graph& graph, const std::string filename, ProbDist probDist, const float sum, const float prob, const std::string skewType)
-    {
-        LogInfo("Graph", filename);
-        LogInfo("probDist", TIO::build_distStr(probDist));
-        LogInfo("wcPara", sum);
-        LogInfo("uniformPara", prob);
-        LogInfo("skewType", skewType);
-        TIO::LoadGraphStruct(TIO::buildGraphName(filename, probDist, sum, prob, skewType), graph, true);
-        LogInfo("Load success!!!");
-        return;
+    if (Logger::mode == _DEBUG) {
+      for (CountType i = 0;i < 10;i++)
+        for (CountType j = 0;j < graph[i].size();j++)
+          std::cout << i << " " << graph[i][j].first << " " << graph[i][j].second << std::endl;
     }
-
-    static int LoadGraphProbDist(const std::string graphName)
-    {
-        return TIO::LoadGraphProbDist(graphName);
-    }
-
+    return;
+  }
 };

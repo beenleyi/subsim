@@ -34,3 +34,5 @@ result/
 runlog/
 subsim
 graphInfo/
+
+run.sh

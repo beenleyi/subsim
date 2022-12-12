@@ -2,7 +2,7 @@
 /// Node list
 typedef std::vector<uint32_t> Nodelist;
 /// Edge structure, neighbor id and the edge weight
-typedef std::pair<uint32_t, float> Edge;
+typedef std::pair<uint32_t, double> Edge;
 /// Edgelist structure from one source/target node
 typedef std::vector<Edge> Edgelist;
 /// Graph structure
@@ -16,10 +16,17 @@ double decay_factor = 1.0;
 typedef std::vector<uint32_t> RRset;
 /// A set of reverse reachable sets
 typedef std::vector<RRset> RRsets;
+typedef uint32_t NodeType;
+typedef double WeightType;
+typedef NodeType* NeighborList;
+typedef uint32_t CountType;
+typedef WeightType* NeighborWeightList;
+typedef NeighborList* GraphNodeList;
+typedef NeighborWeightList* GraphWeightList;
 bool optflag;
 enum ProbDist { WEIGHTS, UNIFORM, WC, SKEWED, PROB_DIST_ERROR };
 enum FuncType { FORMAT, IM, FUNC_ERROR };
-
+const int _DEBUG = 1;
 /// Node element with id and a property value
 typedef struct NodeElement
 {

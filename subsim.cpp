@@ -7,23 +7,24 @@ void init_random_seed()
     // Randomize the seed for generating random numbers
     dsfmt_gv_init_gen_rand(static_cast<uint32_t>(time(nullptr)));
 }
-
+int Logger::mode;
 int main(int argc, char* argv[])
 {
 
     TArgument Arg(argc, argv);
-
+    Logger::mode = Arg._debug;
+    Logger::getDatetime();
     if (Arg._probDist == PROB_DIST_ERROR)
     {
-        LogInfo("The input probability distribution is not supported:", Arg._probDistStr);
-        LogInfo("The supported probability distribution: weights, wc, uniform, skewed");
+        Logger::LogInfo("The input probability distribution is not supported:", Arg._probDistStr);
+        Logger::LogInfo("The supported probability distribution: weights, wc, uniform, skewed");
         return 0;
     }
 
     if (Arg._func == FUNC_ERROR)
     {
-        LogInfo("The input func is not supported: ", Arg._funcStr);
-        LogInfo("The supported func: format, im");
+        Logger::LogInfo("The input func is not supported: ", Arg._funcStr);
+        Logger::LogInfo("The supported func: format, im");
     }
 
     init_random_seed();
@@ -32,14 +33,16 @@ int main(int argc, char* argv[])
     if (Arg._func == FORMAT)
     {
         // Format the graph
-        GraphBase::FormatGraph(infilename, Arg._probDist, Arg._wcVar, Arg._probEdge, Arg._skewType);
+        GraphBase g;
+        g.FormatGraph(infilename, Arg._probDist, Arg._wcVar, Arg._probEdge, Arg._skewType);
         return 0;
     }
 
     Timer mainTimer("main");
     // Load the reverse graph
+    GraphBase g;
     Graph graph;
-    GraphBase::LoadGraph(graph, infilename, Arg._probDist, Arg._wcVar, Arg._probEdge, Arg._skewType);
+    g.LoadGraph(graph, infilename, Arg._probDist, Arg._wcVar, Arg._probEdge, Arg._skewType);
     // int probDist = GraphBase::LoadGraphProbDist(infilename);
     int probDist = Arg._probDist;
 
@@ -56,13 +59,13 @@ int main(int argc, char* argv[])
     {
         double time = tAlg.rrsetOnly(Arg._rrsetNum);
         TIO::writeRRsetResult(Arg._graphname, Arg._probDist, Arg._wcVar, Arg._probEdge, Arg._skewType, time, Arg._resultFolder, Arg._vanilla, Arg._rrsetNum);
-        LogInfo("Result written!!!");
+        Logger::LogInfo("result", time);
+        Logger::LogInfo("Result written!!!");
         return 0;
     }
 
     int seedSize = Arg._seedsize;
     std::cout << "seedSize k=" << seedSize << std::endl;
-    Arg.build_outfilename(seedSize, (ProbDist)probDist, graph);
     std::cout << "---The Begin of " << Arg._outFileName << "---\n";
 
 

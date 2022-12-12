@@ -12,7 +12,7 @@ public:
     int _seedsize = 50;
 
     // For the uniform setting, every edge has the same diffusion probability.
-    float _probEdge = float(0.1);
+    double _probEdge = double(0.1);
 
     // Error threshold 1-1/e-epsilon.
     double _eps = 0.1;
@@ -54,6 +54,8 @@ public:
 
     int _rrsetNum = 0;
 
+    int _debug = 0;
+
     Argument(int argc, char* argv[])
     {
         std::string param, value;
@@ -81,6 +83,7 @@ public:
             else if (!param.compare("-hist")) _hist = (value == "1");
             else if (!param.compare("-rrset")) _rrset = (value == "1");
             else if (!param.compare("-rrsetnum")) _rrsetNum = stoi(value);
+            else if (!param.compare("-debug")) _debug = stoi(value);
         }
 
         if (_wcVar <= 0)
@@ -91,11 +94,6 @@ public:
 
         decode_func_type();
         decode_prob_dist();
-    }
-
-    void build_outfilename(int seedSize, ProbDist dist, Graph& graph) {
-        std::string distStr = TIO::build_distStr(dist);
-        _outFileName = TIO::BuildOutFileName(_graphname, "subsim", seedSize, distStr, _probEdge);
     }
 
     void decode_prob_dist()

@@ -87,7 +87,7 @@ public:
 
         const auto prevSize = _numRRsets;
         _numRRsets = _numRRsets > numSamples ? _numRRsets : numSamples;
-        LogInfo("#RRset to sample", numSamples);
+        Logger::LogInfo("#RRset to sample", numSamples);
         if (_isVanilla)
         {
             std::cout << "Sample RR set by vanilla method" << std::endl;
@@ -141,7 +141,7 @@ public:
             }
         }
 
-        LogInfo("Sampling success!!!");
+        Logger::LogInfo("Sampling success!!!");
         return;
     }
 

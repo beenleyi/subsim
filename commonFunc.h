@@ -2,19 +2,19 @@
 
 #define ENUM_STR(x) #x
 
-/// Log information
-template <typename _Ty>
-static inline void LogInfo(_Ty val)
-{
-    std::cout << val << std::endl;
-}
+// /// Log information
+// template <typename _Ty>
+// static inline void LogInfo(_Ty val)
+// {
+//     std::cout << val << std::endl;
+// }
 
-/// Log information
-template <typename _Ty>
-static inline void LogInfo(const std::string title, _Ty val)
-{
-    std::cout << title << ": " << val << std::endl;
-}
+// /// Log information
+// template <typename _Ty>
+// static inline void LogInfo(const std::string title, _Ty val)
+// {
+//     std::cout << title << ": " << val << std::endl;
+// }
 
 /// Math, pow2
 static inline double pow2(const double t)
@@ -112,7 +112,7 @@ inline void MinHeapReplaceMinValue(FRset& vec, const size_t& val)
 }
 
 /// Make the vector to a max-heap.
-static inline void MakeMaxHeap(std::vector<std::pair<float, uint32_t>>& vec)
+static inline void MakeMaxHeap(std::vector<std::pair<double, uint32_t>>& vec)
 {
     // Max heap
     const auto size = vec.size();
@@ -152,7 +152,7 @@ static inline void MakeMaxHeap(std::vector<std::pair<float, uint32_t>>& vec)
 }
 
 /// Replace the value for the first element and down-heap this element.
-static inline void MaxHeapReplaceMaxValue(std::vector<std::pair<float, uint32_t>>& vec, const float& val)
+static inline void MaxHeapReplaceMaxValue(std::vector<std::pair<double, uint32_t>>& vec, const double& val)
 {
     // Increase the value of the first element
     const auto size = vec.size();
@@ -212,7 +212,7 @@ static inline void NormalizeAccumProb(Graph& vecGraph)
 {
     for (auto& nbrs : vecGraph)
     {
-        float accumVal = float(0.0);
+        double accumVal = double(0.0);
 
         for (auto& nbr : nbrs)
         {
@@ -229,12 +229,12 @@ static inline void NormalizeAccumProb(Graph& vecGraph)
 }
 
 
-bool SmallerPair(const std::pair<uint32_t, uint32_t> &x, const std::pair<uint32_t, uint32_t> &y)
+bool SmallerPair(const std::pair<uint32_t, uint32_t>& x, const std::pair<uint32_t, uint32_t>& y)
 {
     return x.first < y.first;
 }
 
-bool GreaterPair(const std::pair<uint32_t, uint32_t> &x, const std::pair<uint32_t, uint32_t> &y)
+bool GreaterPair(const std::pair<uint32_t, uint32_t>& x, const std::pair<uint32_t, uint32_t>& y)
 {
     return x.first > y.first;
 }

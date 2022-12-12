@@ -40,6 +40,7 @@
 #include "SFMT/dSFMT/dSFMT.h"
 #include <tr1/random>
 #include "timer.h"
+#include "logger.h"
 #include "commonStruct.h"
 #include "commonFunc.h"
 #include "serialize.h"
